@@ -1,0 +1,57 @@
+{
+  "fields": {
+    "project": {
+      "id": "1000"
+    },
+    "summary": "Increase partition size from 10 to 20",
+    "assignee": {
+      "id": "unassigned"
+    },
+    "issuetype": {
+      "name": "Task"
+    },
+    "priority": {
+      "name": "Medium"
+    },
+    "reporter": {
+      "id": "team-member-1"
+    },
+    "description": {
+      "type": "doc",
+      "version": 1,
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "The current pipeline partition size is set to 10, which may be limiting throughput and parallelism. This task is to update the partition configuration from 10 to 20 to improve processing capacity and distribution of workload across the pipeline."
+            }
+          ]
+        }
+      ]
+    },
+    "customfield_acceptance_criteria": {
+      "type": "doc",
+      "version": 1,
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "1. Partition count is updated to 20 in the pipeline configuration. 2. Pipeline runs successfully with the new partition setting. 3. No data loss or processing errors occur after the change. 4. Throughput metrics are verified to reflect the updated partition count."
+            }
+          ]
+        }
+      ]
+    },
+    "customfield_pipeline_source": "none",
+    "customfield_relevant_files": [
+      "pipeline_config.py"
+    ],
+    "customfield_status": "Backlog",
+    "customfield_feedback": ""
+  },
+  "id": "TICKET-002"
+}

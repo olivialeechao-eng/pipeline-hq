@@ -1,0 +1,108 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(**)",
+      "Edit(**)",
+      "Write(**)",
+      "Glob(**)",
+      "Grep(**)",
+      "LS(**)",
+      "Agent(**)",
+      "Bash(grep *)",
+      "Bash(find *)",
+      "Bash(wc *)",
+      "Bash(git status *)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(git branch *)",
+      "Bash(git show *)",
+      "Bash(npm run *)",
+      "Bash(ls *)",
+      "Bash(cat *)",
+      "Bash(pwd *)",
+      "Bash(echo *)",
+      "Bash(which *)",
+      "Bash(dbt *)",
+      "Bash(airflow *)",
+      "Bash(astro *)",
+      "Bash(pytest *)",
+      "Bash(claude --agent *)",
+      "mcp__dbt*",
+      "mcp__github*"
+    ],
+    "ask": [
+      "Bash(git push *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(docker *)",
+      "Bash(curl *)",
+      "Bash(wget *)"
+    ],
+    "deny": [
+      "Bash(find * -delete *)",
+      "Bash(find * -exec *)",
+      "Bash(rm *)",
+      "Bash(rm -rf *)",
+      "Bash(rm -r *)",
+      "Bash(unlink *)",
+      "Bash(shred *)",
+      "Bash(mv *)",
+      "Bash(truncate *)",
+      "Bash(dd *)",
+      "Bash(git push --force *)",
+      "Bash(git reset --hard *)",
+      "Bash(git clean -fd *)",
+      "Bash(kill *)",
+      "Bash(killall *)",
+      "Bash(eval *)",
+      "Bash(exec *)",
+      "Bash(sudo *)",
+      "Bash(su *)",
+      "Bash(python -c *)",
+      "Bash(python3 -c *)",
+      "Bash(python -m pip install *)",
+      "Bash(python3 -m pip install *)",
+      "Bash(python -m pip uninstall *)",
+      "Bash(python3 -m pip uninstall *)",
+      "Bash(python setup.py *)",
+      "Bash(python3 setup.py *)",
+      "Bash(* | python *)",
+      "Bash(* | python3 *)",
+      "Edit(.github/**)",
+      "Edit(.git/**)",
+      "Read(**/.env)",
+      "Read(**/.env.*)",
+      "Read(**/secrets/**)",
+      "Read(**/*.pem)",
+      "Read(**/*.key)",
+      "Read(**/*.p12)",
+      "Write(**/.env)",
+      "Write(**/.env.*)",
+      "mcp__github__delete*"
+
+    ],
+    "disableBypassPermissionsMode": "disable",
+    "defaultMode": "default"
+  },
+  "sandbox": {
+    "enabled": true,
+    "failIfUnavailable": true,
+    "autoAllowBashIfSandboxed": true,
+    "allowUnsandboxedCommands": false,
+    "filesystem": {
+      "denyRead": ["~/"],
+      "allowRead": [
+        "."
+      ]
+    },
+    "network": {
+      "allowedDomains": [
+        "github.com"
+      ]
+    },
+    "excludedCommands": [
+      "python3 *",
+      "python *"
+    ]
+  }
+}

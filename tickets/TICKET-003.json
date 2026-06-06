@@ -1,0 +1,57 @@
+{
+  "fields": {
+    "project": {
+      "id": "1000"
+    },
+    "summary": "Increase fraud pipeline partitions to 20",
+    "assignee": {
+      "id": "task-pr-agent"
+    },
+    "issuetype": {
+      "name": "Task"
+    },
+    "priority": {
+      "name": "Medium"
+    },
+    "reporter": {
+      "id": "team-member-1"
+    },
+    "description": {
+      "type": "doc",
+      "version": 1,
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "The credit card fraud detection pipeline currently runs with 10 partitions, limiting parallel processing and throughput. The requirement is to change the partition count to 20 to improve scalability and reduce processing latency. This change should be applied to the pipeline configuration and redeployed without causing downtime. Verify that the new partition count is effective and that the pipeline continues to process data correctly.\n\n**Context**\n- Pipeline: credit_card_fraud_pipeline\n- Current partition count: 10\n- Desired partition count: 20\n\n**Impact**\n- Expected improvement in processing speed and capacity.\n- No functional changes to fraud detection logic.\n- Must ensure no data loss or processing errors during the update."
+            }
+          ]
+        }
+      ]
+    },
+    "customfield_acceptance_criteria": {
+      "type": "doc",
+      "version": 1,
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "- Partition count in the pipeline configuration is set to 20.\n- Pipeline is redeployed successfully with no startup errors.\n- Monitoring confirms the pipeline runs with 20 partitions.\n- End\u2011to\u2011end data processing tests pass, showing no loss or duplication of records.\n- Performance metrics show reduced processing latency compared to the previous 10\u2011partition setup."
+            }
+          ]
+        }
+      ]
+    },
+    "customfield_pipeline_source": "credit_card_fraud_pipeline",
+    "customfield_relevant_files": [
+      "pipelines/credit_card_fraud_pipeline.py"
+    ],
+    "customfield_status": "PR Opened",
+    "customfield_feedback": ""
+  },
+  "id": "TICKET-003"
+}

@@ -1,0 +1,57 @@
+{
+  "fields": {
+    "project": {
+      "id": "1000"
+    },
+    "summary": "Rename `suspicious` to `suspicious_df`",
+    "assignee": {
+      "id": "unassigned"
+    },
+    "issuetype": {
+      "name": "Task"
+    },
+    "priority": {
+      "name": "Low"
+    },
+    "reporter": {
+      "id": "team-member-1"
+    },
+    "description": {
+      "type": "doc",
+      "version": 1,
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "In the credit_card_fraud_pipeline, the variable `suspicious` should be renamed to `suspicious_df` to follow the project convention of suffixing DataFrame variables with `_df`. This improves code readability and makes it immediately clear that the variable holds a pandas DataFrame. No functional changes are required \u2014 this is a pure rename refactor."
+            }
+          ]
+        }
+      ]
+    },
+    "customfield_acceptance_criteria": {
+      "type": "doc",
+      "version": 1,
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "All occurrences of the variable `suspicious` in the credit_card_fraud_pipeline are renamed to `suspicious_df`. The pipeline runs successfully with no errors after the rename. No other variable names or logic are changed."
+            }
+          ]
+        }
+      ]
+    },
+    "customfield_pipeline_source": "credit_card_fraud_pipeline",
+    "customfield_relevant_files": [
+      "pipelines/credit_card_fraud_pipeline.py"
+    ],
+    "customfield_status": "PR Opened",
+    "customfield_feedback": ""
+  },
+  "id": "TICKET-001"
+}

@@ -1,0 +1,27 @@
+# Directories
+data/
+scratch/
+diagrams/
+docker/
+
+# VS Code
+.vscode/
+
+# Claude
+.claude/settings.local.json
+
+# Python
+__pycache__/
+*.py[cod]
+
+# macOS
+.DS_Store
+
+# Environment variables
+.env
+
+# Other
+skills-lock.json
+*.egg-info/
+*scratch*.py
+*.db

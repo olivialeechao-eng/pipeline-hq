@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pipeline-hq"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+    "python-dotenv",
+    "openai",
+    "langgraph",
+    "langchain-core",
+    "prefect",
+    "pygithub",
+    "duckdb>=0.8.0",
+    "pyarrow",
+    "pyiceberg",
+    "pyspark",
+    "kagglehub",
+    "pandas",
+    "streamlit",
+    "arize-phoenix",
+    "opentelemetry-sdk",
+    "opentelemetry-exporter-otlp-proto-http",
+    "opentelemetry-instrumentation-openai",
+    "openinference-semantic-conventions",
+    "requests",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
