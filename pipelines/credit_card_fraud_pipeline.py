@@ -81,17 +81,17 @@ def partition_silver() -> None:
 def process_batch(batch_df, batch_id: int) -> None:
     total             = batch_df.count()
     total_amount      = batch_df.agg(F.sum("Amount")).collect()[0][0] or 0
-    suspicious        = batch_df.filter(F.col("Class") == 1)
-    fraud_count       = suspicious.count()
+    suspicious_df        = batch_df.filter(F.col("Class") == 1)
+    fraud_count       = suspicious_df.count()
     fraud_rate        = round(fraud_count / total * 100, 2) if total > 0 else 0
-    suspicious_amount = suspicious.agg(F.sum("Amount")).collect()[0][0] or 0
+    suspicious_amount = suspicious_df.agg(F.sum("Amount")).collect()[0][0] or 0
 
     print(f"Batch {batch_id}: {total} transactions, {fraud_count} suspicious "
           f"({fraud_rate}%), suspicious amount: ${round(suspicious_amount, 2)}")
 
     if fraud_count > 0:
-        suspicious.withColumn("batch_id", F.lit(batch_id)) \
-                  .write.format("delta").mode("append").save(DELTA_GOLD_FLAGGED)
+        suspicious_df.withColumn("batch_id", F.lit(batch_id)) \
+                      .write.format("delta").mode("append").save(DELTA_GOLD_FLAGGED)
 
     summary_df = batch_df.sparkSession.createDataFrame(
         [(batch_id, total, float(total_amount), fraud_count, fraud_rate, float(suspicious_amount))],
