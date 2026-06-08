@@ -91,7 +91,7 @@ def process_batch(batch_df, batch_id: int) -> None:
 
     if fraud_count > 0:
         suspicious_df.withColumn("batch_id", F.lit(batch_id)) \
-                  .write.format("delta").mode("append").save(DELTA_GOLD_FLAGGED)
+                      .write.format("delta").mode("append").save(DELTA_GOLD_FLAGGED)
 
     summary_df = batch_df.sparkSession.createDataFrame(
         [(batch_id, total, float(total_amount), fraud_count, fraud_rate, float(suspicious_amount))],
