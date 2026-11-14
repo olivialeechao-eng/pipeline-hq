@@ -1,5 +1,5 @@
 """
-jira_agent.py — pipeline-cortex Jira Agent
+jira_agent.py — pipeline-hq Jira Agent
 
 Contract: receives a raw description of a pipeline alert, issue, or feature request
 → generates all structured ticket fields in one LLM call → validates against JiraTicket schema
@@ -42,6 +42,7 @@ load_dotenv()
 GROQ_API_KEY    = os.environ["GROQ_API_KEY"]
 MODEL           = "openai/gpt-oss-120b"
 PHOENIX_API_KEY = os.environ["PHOENIX_API_KEY"]
+PHOENIX_COLLECTOR_ENDPOINT = os.environ["PHOENIX_COLLECTOR_ENDPOINT"]
 TICKETS_DIR     = os.path.join(os.path.dirname(__file__), "..", "tickets")
 MAX_RETRIES     = 3
 
@@ -50,7 +51,7 @@ resource = Resource(attributes={
 })
 
 exporter = OTLPSpanExporter(
-    endpoint="https://app.phoenix.arize.com/s/olivialeechao/v1/traces",
+    endpoint=PHOENIX_COLLECTOR_ENDPOINT,
     headers={"Authorization": f"Bearer {PHOENIX_API_KEY}"},
 )
 

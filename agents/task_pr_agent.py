@@ -1,5 +1,5 @@
 """
-task_agent.py — pipeline-cortex Task Agent
+task_agent.py — pipeline-hq Task Agent
 
 Contract: receives a Task ticket from the Router → implements the change → opens a GitHub PR
 → waits for human review → loops back on CHANGES_REQUESTED, ends on merge.
@@ -301,81 +301,73 @@ def open_pr(state: TaskAgentState) -> TaskAgentState:
     branch     = _get_branch_name(state)
     commit_msg = f"{ticket_key}: {plan['change_description']}"
 
-    # ── Stubbed (uncomment when GitHub integration is ready) ──────────────────
-    print("[task_agent] open_pr — STUBBED")
+    if gh is None:
+        raise RuntimeError("GITHUB_TOKEN is not set")
+    repo     = gh.get_repo(GITHUB_REPO)
+    main_sha = repo.get_branch("main").commit.sha
+
+    # Create branch on first pass; on rework the branch already exists
+    existing_branches = [b.name for b in repo.get_branches()]
+    if branch not in existing_branches:
+        repo.create_git_ref(ref=f"refs/heads/{branch}", sha=main_sha)
+        print(f"[task_agent] created branch: {branch}")
+    else:
+        print(f"[task_agent] branch exists, pushing new commits: {branch}")
+
+    for diff in state["diffs"]:
+        file_path   = diff["file_path"]
+        new_content = diff["new_content"]
+        try:
+            existing = repo.get_contents(file_path, ref=branch)
+            assert not isinstance(existing, list)
+            repo.update_file(
+                path=file_path, message=commit_msg,
+                content=new_content, sha=existing.sha, branch=branch,
+            )
+        except Exception:
+            repo.create_file(
+                path=file_path, message=commit_msg,
+                content=new_content, branch=branch,
+            )
+        print(f"[task_agent] committed {file_path}")
+
+    # Open PR on first pass; on rework the PR already exists
+    open_prs = list(repo.get_pulls(state="open", head=branch))
+    if open_prs:
+        pr = open_prs[0]
+        print(f"[task_agent] PR already open, new commits pushed: {pr.html_url}")
+    else:
+        pr_body = textwrap.dedent(f"""
+            **Ticket:** {ticket_key}
+            **Summary:** {_get_ticket_summary(state)}
+
+            **What changed:**
+            {plan['change_description']}
+
+            **Why:**
+            {plan['reasoning']}
+
+            **Approach:**
+            {plan['approach']}
+
+            ---
+            *Opened by pipeline-hq task-agent · Closes {ticket_key}*
+        """).strip()
+
+        pr = repo.create_pull(
+            title=f"{ticket_key}: {plan['change_description']}",
+            body=pr_body,
+            head=branch,
+            base="main",
+        )
+        print(f"[task_agent] PR opened: {pr.html_url}")
+
     return {
         **state,
-        "pr_url":            "https://github.com/pull/0",
-        "pr_number":         0,
+        "pr_url":            pr.html_url,
+        "pr_number":         pr.number,
         "last_agent_run_at": _get_now_iso(),
     }
-    # ─────────────────────────────────────────────────────────────────────────
-
-    # repo     = gh.get_repo(GITHUB_REPO)
-    # main_sha = repo.get_branch("main").commit.sha
-    #
-    # # Create branch on first pass; on rework the branch already exists
-    # existing_branches = [b.name for b in repo.get_branches()]
-    # if branch not in existing_branches:
-    #     repo.create_git_ref(ref=f"refs/heads/{branch}", sha=main_sha)
-    #     print(f"[task_agent] created branch: {branch}")
-    # else:
-    #     print(f"[task_agent] branch exists, pushing new commits: {branch}")
-    #
-    # for diff in state["diffs"]:
-    #     file_path   = diff["file_path"]
-    #     new_content = diff["new_content"]
-    #     try:
-    #         existing = repo.get_contents(file_path, ref=branch)
-    #         assert not isinstance(existing, list)
-    #         repo.update_file(
-    #             path=file_path, message=commit_msg,
-    #             content=new_content, sha=existing.sha, branch=branch,
-    #         )
-    #     except Exception:
-    #         repo.create_file(
-    #             path=file_path, message=commit_msg,
-    #             content=new_content, branch=branch,
-    #         )
-    #     print(f"[task_agent] committed {file_path}")
-    #
-    # # Open PR on first pass; on rework the PR already exists
-    # open_prs = list(repo.get_pulls(state="open", head=branch))
-    # if open_prs:
-    #     pr = open_prs[0]
-    #     print(f"[task_agent] PR already open, new commits pushed: {pr.html_url}")
-    # else:
-    #     pr_body = textwrap.dedent(f"""
-    #         **Ticket:** {ticket_key}
-    #         **Summary:** {_get_ticket_summary(state)}
-    #
-    #         **What changed:**
-    #         {plan['change_description']}
-    #
-    #         **Why:**
-    #         {plan['reasoning']}
-    #
-    #         **Approach:**
-    #         {plan['approach']}
-    #
-    #         ---
-    #         *Opened by pipeline-cortex task-agent · Closes {ticket_key}*
-    #     """).strip()
-    #
-    #     pr = repo.create_pull(
-    #         title=f"{ticket_key}: {plan['change_description']}",
-    #         body=pr_body,
-    #         head=branch,
-    #         base="main",
-    #     )
-    #     print(f"[task_agent] PR opened: {pr.html_url}")
-    #
-    # return {
-    #     **state,
-    #     "pr_url":            pr.html_url,
-    #     "pr_number":         pr.number,
-    #     "last_agent_run_at": _get_now_iso(),
-    # }
 
 
 # ── Node 5: get_human_approval ────────────────────────────────────────────────────
@@ -411,60 +403,57 @@ def route_after_approval(state: TaskAgentState) -> str:
     arrived after the agent's most recent push. This prevents re-triggering
     on reviews from earlier passes.
     """
-    # ── Stubbed: always end (uncomment GitHub block when ready) ───────────────
-    print("[task_agent] route_after_approval — STUBBED, routing to END")
-    return END
-    # ─────────────────────────────────────────────────────────────────────────
+    if gh is None:
+        raise RuntimeError("GITHUB_TOKEN is not set")
+    repo = gh.get_repo(GITHUB_REPO)
+    pr   = repo.get_pull(state["pr_number"])
 
-    # repo = gh.get_repo(GITHUB_REPO)
-    # pr   = repo.get_pull(state["pr_number"])
-    #
-    # if pr.merged:
-    #     print(f"[task_agent] PR #{pr.number} merged — done")
-    #     return END
-    #
-    # if pr.state == "closed":
-    #     print(f"[task_agent] PR #{pr.number} closed without merge")
-    #     return END
-    #
-    # last_run = datetime.fromisoformat(state["last_agent_run_at"])
-    # reviews  = pr.get_reviews()
-    #
-    # new_changes_requested = any(
-    #     r.state == "CHANGES_REQUESTED"
-    #     and r.submitted_at.replace(tzinfo=timezone.utc) > last_run
-    #     for r in reviews
-    # )
-    #
-    # if new_changes_requested:
-    #     # Collect all inline review comments and top-level PR comments posted
-    #     # after the agent's last push — these are the human's concrete feedback.
-    #     pr_comments: list[dict] = []
-    #
-    #     for comment in pr.get_review_comments():
-    #         if comment.created_at.replace(tzinfo=timezone.utc) > last_run:
-    #             pr_comments.append({
-    #                 "author": comment.user.login,
-    #                 "body":   comment.body,
-    #                 "path":   comment.path,
-    #                 "line":   comment.original_line,
-    #             })
-    #
-    #     for comment in pr.get_issue_comments():
-    #         if comment.created_at.replace(tzinfo=timezone.utc) > last_run:
-    #             pr_comments.append({
-    #                 "author": comment.user.login,
-    #                 "body":   comment.body,
-    #                 "path":   None,
-    #                 "line":   None,
-    #             })
-    #
-    #     print(f"[task_agent] new CHANGES_REQUESTED — {len(pr_comments)} comments — rework")
-    #     state["pr_comments"] = pr_comments
-    #     return "load_relevant_files"
-    #
-    # print(f"[task_agent] no new review — waiting")
-    # return "get_human_approval"
+    if pr.merged:
+        print(f"[task_agent] PR #{pr.number} merged — done")
+        return END
+
+    if pr.state == "closed":
+        print(f"[task_agent] PR #{pr.number} closed without merge")
+        return END
+
+    last_run = datetime.fromisoformat(state["last_agent_run_at"])
+    reviews  = pr.get_reviews()
+
+    new_changes_requested = any(
+        r.state == "CHANGES_REQUESTED"
+        and r.submitted_at.replace(tzinfo=timezone.utc) > last_run
+        for r in reviews
+    )
+
+    if new_changes_requested:
+        # Collect all inline review comments and top-level PR comments posted
+        # after the agent's last push — these are the human's concrete feedback.
+        pr_comments: list[dict] = []
+
+        for comment in pr.get_review_comments():
+            if comment.created_at.replace(tzinfo=timezone.utc) > last_run:
+                pr_comments.append({
+                    "author": comment.user.login,
+                    "body":   comment.body,
+                    "path":   comment.path,
+                    "line":   comment.original_line,
+                })
+
+        for comment in pr.get_issue_comments():
+            if comment.created_at.replace(tzinfo=timezone.utc) > last_run:
+                pr_comments.append({
+                    "author": comment.user.login,
+                    "body":   comment.body,
+                    "path":   None,
+                    "line":   None,
+                })
+
+        print(f"[task_agent] new CHANGES_REQUESTED — {len(pr_comments)} comments — rework")
+        state["pr_comments"] = pr_comments
+        return "load_relevant_files"
+
+    print(f"[task_agent] no new review — waiting")
+    return "get_human_approval"
 
 
 # ── Graph ─────────────────────────────────────────────────────────────────────
@@ -621,7 +610,7 @@ if __name__ == "__main__":
 
     print()
     print("=" * 60)
-    print("NODE 4: open_pr (stubbed)")
+    print("NODE 4: open_pr")
     print("=" * 60)
     s4 = open_pr(s3)
     assert s4["pr_url"], "pr_url should be set"
@@ -631,7 +620,7 @@ if __name__ == "__main__":
 
     print()
     print("=" * 60)
-    print("NODE 5: get_human_approval + routing (stubbed → END)")
+    print("NODE 5: get_human_approval + routing")
     print("=" * 60)
     s5    = get_human_approval(s4)
     route = route_after_approval(s5)

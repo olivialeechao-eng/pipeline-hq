@@ -6,7 +6,7 @@ import streamlit as st
 import pandas as pd
 from queries.github_queries import get_pr_metadata
 
-st.set_page_config(page_title="pipeline-cortex · PR Metadata", layout="wide")
+st.set_page_config(page_title="pipeline-hq · PR Metadata", layout="wide")
 st.title("PR Metadata")
 
 @st.cache_data(ttl=60)

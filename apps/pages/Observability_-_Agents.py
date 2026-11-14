@@ -7,7 +7,7 @@ import pandas as pd
 from queries.phoenix_queries import get_agent_spans
 from ingestion.phoenix_ingest_traces import ingest
 
-st.set_page_config(page_title="pipeline-cortex · Agents", layout="wide")
+st.set_page_config(page_title="pipeline-hq · Agents", layout="wide")
 st.title("Agents")
 
 start_date = st.date_input("Select start date", value=pd.Timestamp.now().date() - pd.Timedelta(days=1))
